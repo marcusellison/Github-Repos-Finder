@@ -8,12 +8,20 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var searchBar: UISearchBar!
     var searchSettings = GithubRepoSearchSettings()
+    var results: [GithubRepo]! = [GithubRepo]()
 
+    @IBOutlet weak var tableView: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.tableView.delegate = self
+        self.tableView.dataSource = self
+        
+        tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableViewAutomaticDimension
         
         // initialize UISearchBar
         searchBar = UISearchBar()
@@ -28,18 +36,35 @@ class ViewController: UIViewController {
     
     private func doSearch() {
         MBProgressHUD.showHUDAddedTo(self.view, animated: true)
-        GithubRepo.fetchRepos(searchSettings, { (repos) -> Void in
+        GithubRepo.fetchRepos(searchSettings, successCallback: { (repos) -> Void in
             for repo in repos {
-                println("[Name: \(repo.name!)]" +
-                    "\n\t[Stars: \(repo.stars!)]" +
-                    "\n\t[Forks: \(repo.forks!)]" +
-                    "\n\t[Owner: \(repo.ownerHandle!)]" +
-                    "\n\t[Avatar: \(repo.ownerAvatarURL!)]")
+                let name = repo.name
+                let stars = repo.stars
+                let forks = repo.forks
+                let owner = repo.ownerHandle
+                let avatar = repo.ownerAvatarURL
+                let description = repo.description
+                
+                println(description)
             }
+            self.results = repos
+            self.tableView.reloadData()
+            
             MBProgressHUD.hideHUDForView(self.view, animated: true)
         }, error: { (error) -> Void in
             println(error)
         })
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return results.count
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCellWithIdentifier("RepoCell", forIndexPath: indexPath) as! RepoTableViewCell
+        cell.repo = results![indexPath.row]
+        
+        return cell
     }
 }
 

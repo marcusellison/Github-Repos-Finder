@@ -9,8 +9,8 @@
 import Foundation
 
 private let reposUrl = "https://api.github.com/search/repositories"
-private let clientId: String? = nil
-private let clientSecret: String? = nil
+private let clientId: String? = "15197229037adba76051"
+private let clientSecret: String? = "5068c19bf27fce44d10d8f3330d84a1a22c17884"
 
 class GithubRepo {
     var name: String?
@@ -18,6 +18,7 @@ class GithubRepo {
     var ownerAvatarURL: String?
     var stars: Int?
     var forks: Int?
+    var description: String?
     
     
     init(jsonResult: NSDictionary) {
@@ -25,12 +26,16 @@ class GithubRepo {
             self.name = name
         }
         
-        if let stars = jsonResult["stargazers_count"] as Int? {
+        if let stars = jsonResult["stargazers_count"] as! Int? {
             self.stars = stars
         }
         
-        if let forks = jsonResult["forks_count"] as Int? {
+        if let forks = jsonResult["forks_count"] as! Int? {
             self.forks = forks
+        }
+        
+        if let description = jsonResult["description"] as! String? {
+            self.description = description
         }
         
         if let owner = jsonResult["owner"] as? NSDictionary {
@@ -50,13 +55,13 @@ class GithubRepo {
         manager.GET(reposUrl, parameters: params, success: { (operation ,responseObject) -> Void in
             if let results = responseObject["items"] as? NSArray {
                 var repos: [GithubRepo] = []
-                for result in results as [NSDictionary] {
+                for result in results as! [NSDictionary] {
                     repos.append(GithubRepo(jsonResult: result))
                 }
                 successCallback(repos)
             }
         }, failure: { (operation, requestError) -> Void in
-            if let errorCallback = error? {
+            if let errorCallback = error {
                 errorCallback(requestError)
             }
         })
